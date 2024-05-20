@@ -51,6 +51,9 @@ class Card(models.Model):
     description = models.TextField(blank=True, null=True)
     list = models.ForeignKey(List, related_name='cards', on_delete=models.CASCADE)
     order = models.PositiveIntegerField(default=0)
+    date_created = models.DateTimeField(auto_now_add=True, verbose_name='Date de creation')
+    date_modified = models.DateTimeField(auto_now=True, verbose_name='Date de modification')
+    date_deleted = models.DateTimeField(blank=True, null=True, verbose_name='Date de suppression')
 
     def __str__(self):
         return self.title
