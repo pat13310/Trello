@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+{% load date_filters %}
+
+{% block content %}
+    <!-- Fond noir et boîte de dialogue -->
+    <div id="modal-backdrop" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <!-- Modal Box -->
+        <div id="modal-box" class="bg-white rounded-lg shadow-lg p-6 w-96">
+            <h2 class="text-xl font-semibold mb-4">Confirmer la suppression</h2>
+            <p id="item-selected" class="mt-1"></p>
+            <p class="mb-6">Êtes-vous sûr de vouloir continuer ?</p>
+            <div class="flex justify-end space-x-4">
+                <button id="confirm-button"
+                        class="bg-bg-primary text-white px-4 py-2 rounded hover:bg-bg-secondary focus:outline-none">Oui
+                </button>
+                <button id="cancel-button"
+                        class="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 focus:outline-none">Non
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Menu contextuel -->
+    <div id="context-menu"
+         class="absolute bg-white shadow-lg shadow-black rounded-lg py-2 px-4 hidden z-50 border-2 border-gray-700">
+        <button data-action="delete"
+                class="text-sm block rounded px-6 py-2 text-gray-600 hover:bg-bg-secondary hover:text-white w-full text-left">
+            Supprimer
+        </button>
+        <button data-action="edit"
+                class="text-sm block rounded px-6 py-2 text-gray-600 hover:bg-bg-secondary hover:text-white w-full text-left">
+            Modifier
+        </button>
+        <button data-action="duplicate"
+                class="text-sm block rounded px-6 py-2 text-gray-600 hover:bg-bg-secondary hover:text-white w-full text-left">
+            Dupliquer
+        </button>
+    </div>
+
+    <!-- Editeur de renommage -->
+    <div id="modal-backdrop-edit"
+         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div id="context-edit" class="absolute bg-white p-0">
+            <input id='board-edit' type="text" class="px-3 text-sm border-2 border-gray-700 focus:outline-none focus:border-blue-500 focus:ring-blue-600 py-2 mb-3">
+            <button id ="board-modify" class="text-sm block rounded px-6 py-2 text-white border bg-bg-primary hover:bg-bg-secondary w-full text-center">
+                Modifier
+            </button>
+        </div>
+    </div>
+
+    <!-- Contenu principal -->
+    <div class="container mx-auto h-full ">
+        <h2 class="text-xl font-normal mb-4 text-white">Tous les Tableaux</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 ">
+            {% for board in boards %}
+                <div class="board relative bg-white shadow-lg shadow-gray-700 rounded-lg px-3 py-6 border-2 border-transparent hover:border-b-accent cursor-pointer">
+                    <div class="absolute top-2 right-2">
+                        <a data-pk="{{ board.pk }}" id="menu-context"
+                           class="material-icons text-gray-500 cursor-pointer hover:text-gray-800"
+                           onclick="toggleMenu(this)">more_vert</a>
+                    </div>
+                    <div class="title text-md font-semibold mb-2">
+                        <a href="{% url 'board_detail' board.pk %}"
+                           class="text-gray-600 border border-transparent rounded-xl bg-gray-300 px-3 hover:border-gray-500">{{ board.name }}</a>
+                    </div>
+                    <p class="text-sm text-gray-500">Propriétaire : {{ board.owner.username }}</p>
+                    <p class="text-sm text-gray-400">Date : {{ board.date_created|date:" d/m/Y à H:i" }}</p>
+
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const modalBackdrop = document.getElementById('modal-backdrop');
+            const modalBackdropEdit = document.getElementById('modal-backdrop-edit');
+            const confirmButton = document.getElementById('confirm-button');
+            const cancelButton = document.getElementById('cancel-button');
+            const menu = document.getElementById('context-menu');
+            //const subtitle = document.getElementById('item-selected');
+
+            const contextMenu = document.getElementById('context-menu');
+            let selectedItem = 0;
+            let selectedBoard=0;
+
+            // Function to show the modal
+            function showModal() {
+                modalBackdrop.classList.remove('hidden');
+            }
+
+            // Function to hide the modal
+            function hideModal() {
+                modalBackdrop.classList.add('hidden');
+            }
+
+            function showEditModal() {
+                const editCtl=selectedBoard.children[1];
+                const rect = editCtl.getBoundingClientRect();
+                const edit= document.getElementById("context-edit");
+                edit.style.top=`${rect.top-4}px`;
+                edit.style.left=`${rect.left}px`
+                modalBackdropEdit.classList.remove('hidden');
+                edit.children[0].value=editCtl.children[0].innerText;
+            }
+
+            function hideEditModal() {
+                modalBackdropEdit.classList.add('hidden');
+            }
+
+            // Function to show/hide the context menu
+            window.toggleMenu = function (event) {
+                selectedBoard = event.closest(".board");
+                selectedItem = event.getAttribute('data-pk');
+                const rect = event.getBoundingClientRect();
+                menu.style.top = `${rect.bottom}px`;
+                menu.style.left = `${rect.left - 110}px`;
+                menu.classList.toggle('hidden');
+            };
+
+            // Attach event listeners
+            document.querySelectorAll('.delete-board-button').forEach(button => {
+                button.addEventListener('click', showModal);
+            });
+
+            cancelButton.addEventListener('click', hideModal);
+
+            confirmButton.addEventListener('click', () => {
+                fetch('{% url "delete_board" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({
+                        board_id: parseInt(selectedItem),
+                    })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status !== 'ok') {
+                            console.error('Failed to delete board:', data.message);
+                        } else {
+                            window.location.reload();
+                        }
+                    });
+                hideModal();
+            });
+
+            // Hide context menu when clicking outside
+            document.addEventListener('click', function (event) {
+                if (!event.target.closest('.material-icons') && !event.target.closest('#context-menu') && !event.target.closest('#context-edit') ) {
+                    contextMenu.classList.add('hidden');
+                    hideEditModal();
+                }
+            });
+
+            contextMenu.addEventListener('click', function (event) {
+                const action = event.target.getAttribute('data-action');
+
+                switch (action) {
+                    case 'delete':
+                        showModal();
+                        break;
+                    case 'edit':
+                        showEditModal();
+                        break;
+                    case 'duplicate':
+                        break;
+                }
+                contextMenu.classList.add('hidden');
+            });
+
+            document.getElementById('board-modify').addEventListener('click',()=>{
+                 const edit_value= document.getElementById("context-edit").children[0].value;
+                fetch('{% url "edit_board" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({
+                        board_id: parseInt(selectedItem),
+                        board_name: edit_value,
+                    })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status !== 'ok') {
+                            console.error('Failed to rename board:', data.message);
+                        } else {
+                            window.location.reload();
+                        }
+                    });
+                hideModal();
+            });
+
+
+
+        })
+        ;
+    </script>
+
+{% endblock %}

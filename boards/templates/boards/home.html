@@ -1,0 +1,99 @@
+<!-- templates/boards/home.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="container mx-auto overflow-y-auto pb-3">
+        <h2 class="pt-4 text-xl font-normal mb-4 text-white">Modèles</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
+            {% for value, label in board_type_choices %}
+                <div class="text-sm model bg-white shadow-md shadow-gray-700 rounded-lg px-3 py-6 border-2 border-transparent hover:border-b-amber-50 cursor-pointer">
+                    <div class="flex items-center justify-center w-1/3 rounded-xl bg-gray-300 text-gray-700 py-0 px-2 mt-2 mb-3">
+                        modèle
+                    </div>
+
+                    <a href="{% url 'create_model' value %}"
+                       class="text-sm font-semibold text-gray-600 hover:text-gray-800" id="{{ value }}">{{ label }}</a>
+                </div>
+            {% endfor %}
+        </div>
+
+        <hr>
+        <h2 class="pt-4 text-xl font-normal mb-4 text-white">Mes Tableaux</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {% for board in boards %}
+                <div class="project bg-white shadow-md shadow-gray-800 rounded-lg p-3 py-6 border-2 border-transparent hover:border-gray-800 cursor-pointer">
+                    <h5 class="text-sm font-semibold mb-2"><a href="{% url 'board_detail' board.pk %}"
+                                                              class="text-gray-600 hover:text-gray-800">{{ board.name }}</a>
+                    </h5>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    {#    <a href="{% url 'create_board' %}" class="mt-4 inline-block bg-secondary text-white py-2 px-4 rounded hover:bg-primary border border-amber-200">Créer un nouveau tableau</a>#}
+{% endblock %}
+
+{% block js %}
+    <script>
+        const models = Array.from(document.getElementsByClassName("model"));
+        const projects = Array.from(document.getElementsByClassName("project"));
+
+        projects.forEach(project => {
+            project.addEventListener("click", () => {
+
+            });
+        });
+
+        {#document.querySelectorAll('.model').forEach(model => {#}
+        {#    model.addEventListener('click', () => {#}
+        {#        let childId = model.children[1].id;#}
+        {##}
+        {#        // Construire l'URL avec le paramètre query#}
+        {#        let url = `/create_model?model_type=${childId}`;#}
+        {##}
+        {#        // Envoyer la requête GET#}
+        {#        fetch(url, {#}
+        {#            method: 'GET',#}
+        {#            headers: {#}
+        {#                'Content-Type': 'application/json',#}
+        {#                'X-CSRFToken': getCookie('csrftoken') // Inclure le CSRF token si nécessaire#}
+        {#            }#}
+        {#        })#}
+        {#            .then(response => {#}
+        {#                if (!response.ok) {#}
+        {#                    throw new Error('Network response was not ok');#}
+        {#                }#}
+        {#                return response.json();#}
+        {#            })#}
+        {#            .then(data => {#}
+        {#                console.log('Success:', data);#}
+        {#                // Traiter la réponse ici si nécessaire#}
+        {#            })#}
+        {#            .catch(error => {#}
+        {#                console.error('There was a problem with the fetch operation:', error);#}
+        {#            });#}
+        {#    });#}
+        {#})
+            ;
+            #}
+            {##}
+            {#// Fonction pour obtenir le CSRF token (nécessaire pour les requêtes POST/GET sécurisées)#}
+            {#function getCookie(name) {#}
+            {#    let cookieValue = null;#}
+            {#    if (document.cookie && document.cookie !== '') {#}
+            {#        const cookies = document.cookie.split(';');#}
+            {#        for (let i = 0; i < cookies.length; i++) {#}
+            {#            const cookie = cookies[i].trim();#}
+            {#            // Does this cookie string begin with the name we want?#}
+            {#            if (cookie.substring(0, name.length + 1) === (name + '=')) {#}
+            {#                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));#}
+            {#                break;#}
+            {#            }#}
+            {#        }#}
+            {#    }#}
+            {#    return cookieValue;#}
+            {
+        #}#}
+
+
+    </script>
+{% endblock %}

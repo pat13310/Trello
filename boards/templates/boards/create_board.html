@@ -1,0 +1,45 @@
+<!-- templates/boards/create_board.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="flex items-center justify-center min-h-screen bg-gradient-to-r from-blue-400 to-purple-500">
+        <div class="bg-white shadow-xl shadow-black rounded-lg p-8 space-y-4 border border-b-blue-950">
+            <h2 class="text-2xl font-bold mb-6 text-center text-gray-700 flex items-center justify-center">
+                <svg fill="#000000" height="80px" width="80px" version="1.1" id="Layer_1"
+                     xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+                     viewBox="0 0 460.002 460.002" xml:space="preserve">
+                    <g>
+                        <g>
+                            <g>
+                                <path d="M427.138,0H32.865C14.743,0,0.001,14.743,0.001,32.865v394.272c0,18.122,14.743,32.865,32.865,32.865h394.271
+                                        c18.122,0,32.865-14.743,32.865-32.865V32.865C460.003,14.743,445.26,0,427.138,0z M30.001,32.865
+                                        c0-1.58,1.285-2.865,2.865-2.865h394.271c1.58,0,2.865,1.285,2.865,2.865v82.863H30.001V32.865z M430.003,427.137
+                                        c0,1.58-1.285,2.865-2.865,2.865H32.865c-1.58,0-2.865-1.285-2.865-2.865v-281.41h400.002V427.137z"/>
+                                <circle cx="76.85" cy="72.364" r="26.249"/>
+                                <path d="M169.326,302.865h47.109v47.109c0,8.284,6.716,15,15,15s15-6.716,15-15v-47.109h47.109c8.284,0,15-6.716,15-15
+                                        s-6.716-15-15-15h-47.109v-47.109c0-8.284-6.716-15-15-15s-15,6.716-15,15v47.109h-47.109c-8.284,0-15,6.716-15,15
+                                        S161.042,302.865,169.326,302.865z"/>
+                            </g>
+                        </g>
+                    </g>
+                </svg>
+                &nbsp;&nbsp;Créer un nouveau tableau
+            </h2>
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit"
+                        class="w-full bg-blue-600 text-white py-2 px-4 rounded-md shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 flex items-center justify-center">
+                    <svg width="24px" height="24px" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+                        <g id="Edit / Add_Plus_Circle">
+                            <path id="Vector"
+                                  d="M8 12H12M12 12H16M12 12V16M12 12V8M12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21Z"
+                                  stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </g>
+                    </svg>&nbsp;&nbsp;
+                    Créer
+                </button>
+            </form>
+        </div>
+    </div>
+{% endblock %}

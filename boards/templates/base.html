@@ -1,0 +1,53 @@
+<!-- templates/base.html -->
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestionnaire de projets</title>
+    <link href="{% static '/css/styles.css' %}" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body class="h-screen bg-gradient-to-r pt-1 ps-1 mb-4">
+<div class="min-h-screen flex">
+    <!-- Sidebar -->
+    <aside class="w-72 min-h-screen bg-white shadow-lg p-6">
+        <div class="text-xl  text-gray-700 mb-5"><b>Gestion des projets</b></div>
+        <div class="space-y-6">
+            {% if user.is_authenticated %}
+                <div class="text-sm text-gray-600 mb-2">
+                    Bonjour, <b>{{ user.username }}</b><br>
+                    <p>Dernière connexion : <br><b>Le{{ user.last_login|date:" d/m/Y à H:i" }}</b></p>
+                </div>
+                <a href="{% url 'home' %}"
+                   class="text-sm flex justify-between items-center w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-800 border border-amber-200">
+                    <i class="material-icons">home</i>&nbsp;&nbsp;Accueil</a>
+                <a href="{% url 'create_board' %}"
+                   class="text-sm flex justify-between items-center w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-800 border border-amber-200">
+                    <span class="material-icons">add</span>&nbsp;&nbsp;Créer un nouveau tableau</a>
+                <a href="{% url 'list_board' %}"
+                   class="text-sm flex justify-between items-center w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-800 border border-amber-200">
+                     <span class="material-icons">list_alt</span>&nbsp;&nbsp;Lister tableaux</a>
+                <a href="{% url 'logout' %}"
+                   class="text-sm flex justify-between items-center w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-800 border border-amber-200">
+                    <span class="material-icons">logout</span>&nbsp;&nbsp;Déconnexion</a>
+
+            {% else %}
+                <a href="{% url 'login' %}"
+                   class="text-sm flex justify-between items-center w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-800 border border-amber-200">
+                    <span class="material-icons">login</span>&nbsp;&nbsp;Connexion</a>
+            {% endif %}
+        </div>
+    </aside>
+    <!-- Main Content -->
+    <main class="overflow-y-auto flex-grow px-6 h-full">
+        {% block content %}
+        {% endblock %}
+    </main>
+</div>
+<!-- Javascript Section -->
+{% block js %}
+{% endblock %}
+</body>
+</html>

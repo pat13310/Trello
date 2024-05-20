@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <!-- Backdrop semi-opaque et side menu -->
+    <div id="backdrop" class="absolute inset-0 bg-black bg-opacity-50 hidden z-40 flex items-center justify-end">
+        <!-- Menu latéral -->
+        <div id="side-menu" class="absolute bg-white bg-opacity-50 z-50 ">
+            <form name="edit_card_form" id="edit-card-form" method="POST" >
+                {% csrf_token %}
+                <div>
+                        <textarea type="text" id="edit-title" name="card_title"
+                                  class="mt-0 mb-3 block w-full px-4 py-2 border border-blue-500 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                  required></textarea>
+                </div>
+
+
+                <button type="submit"
+                        class="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <span class="material-icons">save</span>
+                    <a class="ml-2" onclick="rename_edit()">Sauvegarder</a>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-backdrop" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+
+        <div class="bg-white p-6 rounded-lg shadow-lg shadow-gray-800 w-full max-w-md hidden">
+            <form name="create-card" method="POST" class="space-y-4">
+                {% csrf_token %}
+                <div>
+                    <label for="title" class="block text-sm font-medium text-gray-700">Titre:</label>
+                    <input type="text" id="title" name="title"
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                           required>
+                </div>
+                <div>
+                    <label for="description" class="block text-sm font-medium text-gray-700">Description:</label>
+                    <textarea id="description" name="description" rows="4"
+                              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
+                </div>
+                <button type="submit"
+                        class="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <span class="material-icons">add</span>
+                    <span class="ml-2">Ajouter</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="container mx-auto min-h-screen">
+        <h2 class="text-white text-2xl font-bold mb-8">{{ board.name }}</h2>
+        <a href="{% url 'create_list' board.pk %}"
+           class="mt-2 border border-amber-200 inline-block  text-white py-2 px-4 rounded hover:bg-bg-primary">Ajouter
+            une liste</a>
+        <div class="mt-2 flex space-x-4" id="lists">
+            {% for list in board.lists.all %}
+                <div class="list relative bg-gray-100 shadow shadow-gray-500 p-4 rounded-lg w-1/4"
+                     id="list-{{ list.id }}"
+                     ondragover="allowDrop(event)" ondragenter="handleDragEnter(event)"
+                     ondragleave="handleDragLeave(event)"
+                     ondrop="drop(event, '{{ list.id }}')">
+                    <h5 class="text-gray-500 text-md font-semibold mb-2">{{ list.name }}</h5>
+                    <div class="mb-3 list-none p-0" id="cards-{{ list.id }}">
+                        {% for card in list.cards.all %}
+                            <div class="relative card text-gray-400  bg-white shadow shadow-gray-500 rounded-lg py-2 px-4 mb-2 border-2 hover:border-accent cursor-pointer"
+                                 draggable="true" ondragstart="drag(event, '{{ card.id }}')"
+                                 id="card-{{ card.id }}" data-title="{{ card.title }}">{{ card.title }}
+                                <div class="absolute top-2 right-0  flex items-center justify-center">
+                                    <i class="material-icons text-transparent hover:rounded-3xl hover:text-gray-400 hover:bg-gray-50 p-0.5 text-sm"
+                                       onclick="editCard(event, this,'{{ card.id }}')">edit</i>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="mt-4">
+                        <a href="{% url 'create_card' list.pk %}"
+                           class="rounded py-2 px-4 text-gray-600 border border-transparent hover:bg-accent-2 hover:border-gray-500">+
+                            Ajouter une carte</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script>
+
+        function allowDrop(event) {
+            event.preventDefault();
+        }
+
+        function drag(event, cardId) {
+            event.dataTransfer.setData("text/plain", cardId);
+        }
+
+        function handleDragEnter(event) {
+            event.preventDefault();
+            console.log(event.target)
+            event.target.classList.add('border-blue-400');
+        }
+
+        function handleDragLeave(event) {
+            event.target.classList.remove('border-blue-400');
+        }
+
+        function drop(event, newListId) {
+            event.preventDefault();
+            const cardId = event.dataTransfer.getData("text/plain");
+            const cardElement = document.getElementById(`card-${cardId}`);
+            const newListElement = document.getElementById(`cards-${newListId}`);
+            event.target.classList.remove('border-blue-400');
+
+            let insertBeforeElement = null;
+            const mouseY = event.clientY;
+
+            // Calculate the exact position to insert the card
+            Array.from(newListElement.children).forEach(child => {
+                const rect = child.getBoundingClientRect();
+                const middleY = rect.top + (rect.height / 2);
+                if (mouseY < middleY) {
+                    insertBeforeElement = child;
+                    return;
+                }
+            });
+
+            if (insertBeforeElement) {
+                newListElement.insertBefore(cardElement, insertBeforeElement);
+            } else {
+                newListElement.appendChild(cardElement);
+            }
+
+            // requête fetch pour mettre à jour le backend
+            fetch('{% url "update_card_order" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    card_id: cardId,
+                    new_list_id: newListId,
+                    new_position: Array.from(newListElement.children).indexOf(cardElement)
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status !== 'ok') {
+                        console.error('Failed to update card order:', data.message);
+                    }
+                });
+        }
+
+        function editCard(event, element, cardId) {
+            // Prevent default behavior
+            event.stopPropagation();
+
+            // Show backdrop and side menu
+            const side_menu = document.getElementById('side-menu');
+
+            const form = document.getElementById('edit-card-form');
+            const cardElement = element.closest('.card');
+            const cardList = element.closest('.list');
+            const editTitle = form.card_title;
+            const cardTitle = cardElement.getAttribute("data-title");
+
+            const rect = cardList.getBoundingClientRect();
+
+            //form.card_title=editTitle;
+            form.card_id=cardId;
+
+            side_menu.style.top = `${cardList.offsetTop + cardElement.offsetTop + window.scrollY}px`;
+            side_menu.style.left = `${rect.left + 16 + window.scrollX}px`;
+            side_menu.style.width = `${cardElement.offsetWidth}px`;
+
+            editTitle.style.height = `${cardElement.offsetHeight}px`;
+            editTitle.style.width = `${cardElement.offsetWidth}px`;
+
+            document.getElementById('edit-title').value = cardTitle.trim();
+            document.getElementById('backdrop').classList.remove('hidden');
+
+        }
+
+        function rename_edit(){
+
+            const form = document.getElementById('edit-card-form');
+            fetch('{% url "edit_card" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({card_id:form.card_id,card_title:form.card_title.value}
+                )
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'ok') {
+                        cardElement.setAttribute("data-title",cardTitle);
+                        cardElement.innerText=cardTitle;
+                        document.getElementById('backdrop').classList.add('hidden');
+                    } else {
+                        console.error('Failed to update card:', data.message);
+                    }
+                });
+        }
+
+        document.getElementById('backdrop').addEventListener('click', function (event) {
+            // Hide backdrop and side menu only if clicked outside the side menu
+            if (!event.target.closest('#side-menu')) {
+                this.classList.add('hidden');
+                // document.getElementById('side-menu').classList.add('translate-x-full');
+            }
+        });
+    </script>
+{% endblock %}

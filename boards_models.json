@@ -1,0 +1,7 @@
+{
+  "KAN": ["À faire", "En cours", "Fait"],
+  "AGILE": ["Backlog", "Planification de sprint", "Backlog de sprint", "En cours", "Revue", "Fait"],
+  "PROJ": ["Initiation", "Planification", "Exécution", "Surveillance", "Clôture"],
+  "BUG": ["Ouvert", "En cours", "Résolu", "Fermé"],
+  "TEAM": ["À faire", "En cours", "Terminé", "Bloqué"]
+}
